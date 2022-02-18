@@ -23,17 +23,11 @@ import java.util.regex.Pattern;
 
 public class LuaEditor {
 
-    private static final String[] KEYWORDS = new String[] {
-            "abstract", "assert", "boolean", "break", "byte",
-            "case", "catch", "char", "class", "const",
-            "continue", "default", "do", "double", "else",
-            "enum", "extends", "final", "finally", "float",
-            "for", "goto", "if", "implements", "import",
-            "instanceof", "int", "interface", "long", "native",
-            "new", "package", "private", "protected", "public",
-            "return", "short", "static", "strictfp", "super",
-            "switch", "synchronized", "this", "throw", "throws",
-            "transient", "try", "void", "volatile", "while", "local"
+    private static final String[] KEYWORDS = new String[]{
+            "local", "and", "or", "not", "function", "table", "nil"
+            , "for", "while", "do", "break", "in", "return", "until"
+            , "goto", "repeat", "true", "false", "if", "then", "else", "elseif"
+            , "end", "redis", "call", "log"
     };
 
     private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
@@ -42,7 +36,9 @@ public class LuaEditor {
     private static final String BRACKET_PATTERN = "\\[|\\]";
     private static final String SEMICOLON_PATTERN = "\\;";
     private static final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
-    private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"   // for whole text processing (text blocks)
+//    private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"   // for whole text processing (text blocks)
+//            + "|" + "/\\*[^\\v]*" + "|" + "^\\h*\\*([^\\v]*|/)";  // for visible paragraph processing (line by line)
+    private static final String COMMENT_PATTERN = "--[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"   // for whole text processing (text blocks)
             + "|" + "/\\*[^\\v]*" + "|" + "^\\h*\\*([^\\v]*|/)";  // for visible paragraph processing (line by line)
 
     private static final Pattern PATTERN = Pattern.compile(
@@ -56,30 +52,48 @@ public class LuaEditor {
     );
 
     private static final String sampleCode = String.join("\n", new String[] {
-            "package com.example;",
-            "",
-            "import java.util.*;",
-            "",
-            "public class Foo extends Bar implements Baz {",
-            "",
-            "    /*",
-            "     * multi-line comment",
-            "     */",
-            "    public static void main(String[] args) {",
-            "        // single-line comment",
-            "        for(String arg: args) {",
-            "            if(arg.length() != 0)",
-            "                System.out.println(arg);",
-            "            else",
-            "                System.err.println(\"Warning: empty string as argument\");",
-            "        }",
-            "    }",
-            "",
-            "}"
+                   " -- 库存key，存放库存数量\n" +
+                    " local unsentNumKey  = KEYS[1]\n" +
+                    " -- 幂等锁，用于防止重复追加\n" +
+                    " local idempotentKey = ARGV[1]\n" +
+                    " -- 幂等锁的直\n" +
+                    " local idempotentVal = ARGV[2]\n" +
+                    " -- 共享锁，用于防止多个请求操作\n" +
+                    " -- local unsentLockKey = ARGV[3]\n" +
+                    " -- 本次追加的数量\n" +
+                    " local appendCount   = tonumber(ARGV[4])\n" +
+                    " -- 操作结果\n" +
+                    " local result = \"\"\n" +
+                    "  -- 新增幂等锁，防止重复追加\n" +
+                    " local exist =  redis.call('SETNX', idempotentKey, idempotentVal)\n" +
+                    " -- 幂等key存在，证明是重复发，删掉锁\n" +
+                    " if(exist ~= false) then\n" +
+                    "     -- 删除共享锁\n" +
+                    "     -- redis.call('DEL', unsentLockKey)\n" +
+                    "     -- 幂等存在\n" +
+                    "     result = \"500\"\n" +
+                    " -- 幂等key不存在，证明是追加\n" +
+                    " else\n" +
+                    "     -- 获取当前库存\n" +
+                    "     local curNum = tonumber(redis.call('GET', unsentNumKey))\n" +
+                    "     -- 当前库存为正数\n" +
+                    "     if curNum ~= nil and curNum >= 0 then\n" +
+                    "         -- 递增库存\n" +
+                    "         redis.call('INCRBY', unsentNumKey, appendCount)\n" +
+                    "      -- 当前库存为负数\n" +
+                    "     else\n" +
+                    "         -- 重设库存\n" +
+                    "         redis.call('SET', unsentNumKey, appendCount)\n" +
+                    "     end\n" +
+                    "     result = \"200\"\n" +
+                    " end\n" +
+                    "\n" +
+                    " -- 返回\n" +
+                    " return result"
     });
 
 
-    public void drawEditor(StackPane stackPane) {
+    public CodeArea drawEditor(StackPane stackPane) {
         CodeArea codeArea = new CodeArea();
 
         // add line numbers to the left of area
@@ -109,6 +123,8 @@ public class LuaEditor {
         codeArea.replaceText(0, 0, sampleCode);
 
         stackPane.getChildren().addAll(new VirtualizedScrollPane<>(codeArea));
+
+        return codeArea;
 
         //StackPane stackPane = new StackPane(new VirtualizedScrollPane<>(codeArea));
         //Scene scene = new Scene(stackPane, 800, 600);

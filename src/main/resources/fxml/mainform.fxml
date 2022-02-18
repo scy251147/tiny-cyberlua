@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <AnchorPane id="gridPane" fx:id="gridPane" prefHeight="600" prefWidth="800" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tiny.cyber.lua.service.MainFormService">
-      <StackPane id="stackPane" fx:id="stackPane" prefHeight="475.0" prefWidth="800.0" style="-fx-background-color: #0011ff;" AnchorPane.bottomAnchor="100" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-      <Pane layoutY="478.0" prefHeight="108.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" GridPane.rowIndex="2">
+      <StackPane id="stackPane" fx:id="stackPane" prefHeight="475.0" prefWidth="800.0" style="-fx-background-color: #0011ff;" AnchorPane.bottomAnchor="250" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <Pane layoutY="478.0" prefHeight="250.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" GridPane.rowIndex="2">
          <children>
-            <Button layoutX="691.0" layoutY="12.0" mnemonicParsing="false" prefHeight="86.0" prefWidth="86.0" text="点击执行" />
-            <TextArea layoutX="14.0" layoutY="14.0" prefHeight="86.0" prefWidth="665.0">
-               <opaqueInsets>
-                  <Insets />
-               </opaqueInsets></TextArea>
+             <Label layoutX="34.0" layoutY="33.0" text="KEYS" />
+             <Label layoutX="34.0" layoutY="75.0" text="ARGS" />
+             <Label layoutX="33.0" layoutY="118.0" text="LOGS" />
+             <TextArea id="txtKeys" fx:id="txtKeys" layoutX="81.0" layoutY="20.0" prefHeight="0.0" prefWidth="600.0" promptText="这里输入KEYS入参，逗号分割" />
+             <TextArea id="txtArgs" fx:id="txtArgs" layoutX="81.0" layoutY="67.0" prefHeight="36.0" prefWidth="600.0" promptText="这里输入ARGS入参，逗号分割" />
+             <TextArea id="txtLogs" fx:id="txtLogs" layoutX="81.0" layoutY="118.0" prefHeight="121.0" prefWidth="704.0" promptText="这里是执行日志输出部分" wrapText="true" editable="false" />
+             <Button id="btnExec" fx:id="btnExec" layoutX="689.0" layoutY="20.0" mnemonicParsing="false" prefHeight="86.0" prefWidth="97.0" text="点击执行" onMouseClicked="#run" />
          </children>
       </Pane>
 </AnchorPane>
